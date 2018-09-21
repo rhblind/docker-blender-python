@@ -41,5 +41,9 @@ RUN         tar zxf /usr/local/src/master.tar.gz -C /usr/local/src \
                 && cp -r /usr/local/src/glTF-Blender-Exporter-master/scripts/addons/io_scene_gltf2 \
                     ${BLENDER_INSTALL}/$(echo ${BLENDER_VERSION}|sed -e 's/[^0-9.]//g')/scripts/addons
 
+# Cleanup
+RUN         rm -rf /usr/local/src/*
+WORKDIR     /
+
 # Keep image running while doing nothing
 CMD         exec /bin/bash -c 'trap : TERM INT; sleep infinity & wait'
