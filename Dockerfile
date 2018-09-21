@@ -1,7 +1,7 @@
 FROM        ubuntu:trusty
 
 ENV         DEBIAN_FRONTEND noninteractive
-ENV         BLENDER_INSTALL /opt/blender
+ENV         BLENDER_INSTALL /usr/local/lib/python3.5/dist-packages
 ENV         BLENDER_VERSION 2.79b
 
 # Install build dependencies
@@ -19,8 +19,8 @@ RUN         apt-get update \
                     libavutil-dev libavcodec-dev libjack-dev libswscale-dev libx264-dev \
                     libmp3lame-dev libspnav-dev libtheora-dev libglew-dev libboost-all-dev \
                     libopenimageio-dev libopencolorio-dev libopenshadinglanguage-dev openshadinglanguage
-RUN         apt-get purge -y --auto-remove && \
-                rm -rf /var/lib/apt/lists/*
+RUN         apt-get purge -y --auto-remove \
+                && rm -rf /var/lib/apt/lists/*
 
 # Download, compile and install Blender
 ADD         https://download.blender.org/source/blender-${BLENDER_VERSION}.tar.gz /usr/local/src/
@@ -35,15 +35,11 @@ RUN         cmake -DCMAKE_INSTALL_PREFIX=${BLENDER_INSTALL} \
             && make \
             && make install
 
-# Download glTF 2.0 exporter
+# Download and install the glTF 2.0 exporter
 ADD         https://github.com/KhronosGroup/glTF-Blender-Exporter/archive/master.tar.gz /usr/local/src
 RUN         tar zxf /usr/local/src/master.tar.gz -C /usr/local/src \
                 && cp -r /usr/local/src/glTF-Blender-Exporter-master/scripts/addons/io_scene_gltf2 \
                     ${BLENDER_INSTALL}/$(echo ${BLENDER_VERSION}|sed -e 's/[^0-9.]//g')/scripts/addons
 
-# Copy Blender to Python dist-packages
-RUN         cp ${BLENDER_INSTALL}/bpy.so /usr/local/lib/python3.5/dist-packages \
-                && cp -r ${BLENDER_INSTALL}/$(echo ${BLENDER_VERSION}|sed -e 's/[^0-9.]//g') \
-                    /usr/local/lib/python3.5/dist-packages
-
-CMD         ["/usr/bin/python3.5"]
+# Keep image running while doing nothing
+CMD         exec /bin/bash -c 'trap : TERM INT; sleep infinity & wait'
